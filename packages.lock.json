@@ -1,8 +1,230 @@
 {
  "pyodide_version": "0.29.5",
  "generated_by": "scripts/lock-packages.mjs",
- "groups": {
-  "bilby": {
+ "bilby": {
+  "2.8.2": {
+   "pyodide": [
+    "attrs",
+    "bilby-cython",
+    "contourpy",
+    "cycler",
+    "fonttools",
+    "h5py",
+    "kiwisolver",
+    "matplotlib",
+    "micropip",
+    "numpy",
+    "packaging",
+    "pandas",
+    "pillow",
+    "pkgconfig",
+    "pyparsing",
+    "python-dateutil",
+    "pytz",
+    "scipy",
+    "six",
+    "tqdm"
+   ],
+   "pypi": [
+    {
+     "name": "corner",
+     "version": "2.3.0",
+     "file": "corner-2.3.0-py3-none-any.whl",
+     "url": "https://files.pythonhosted.org/packages/d6/cb/17a130e548ee1777f2a66e09240c531a9bf79454add7ef1198fe1e41c412/corner-2.3.0-py3-none-any.whl",
+     "sha256": "f93f0a4d77ff6852d6ddc80a6a99038117be64e3b5b49d96a82c9f5974cce126",
+     "license": "BSD 2-Clause License"
+    },
+    {
+     "name": "dill",
+     "version": "0.4.1",
+     "file": "dill-0.4.1-py3-none-any.whl",
+     "url": "https://files.pythonhosted.org/packages/1e/77/dc8c558f7593132cf8fefec57c4f60c83b16941c574ac5f619abb3ae7933/dill-0.4.1-py3-none-any.whl",
+     "sha256": "1e1ce33e978ae97fcfcff5638477032b801c46c7c65cf717f95fbc2248f79a9d",
+     "license": "BSD-3-Clause"
+    },
+    {
+     "name": "dynesty",
+     "version": "3.1.0",
+     "file": "dynesty-3.1.0-py3-none-any.whl",
+     "url": "https://files.pythonhosted.org/packages/f1/f9/41c72d0b5fb511fdf23cf62ed50da6c73d4497f03ed1cad04f214dc477c8/dynesty-3.1.0-py3-none-any.whl",
+     "sha256": "4e5b77bb261abdcb98e3a538d7498a94d5882a848f0ea46924b404396ef036d5",
+     "license": "MIT"
+    },
+    {
+     "name": "emcee",
+     "version": "3.1.6",
+     "file": "emcee-3.1.6-py2.py3-none-any.whl",
+     "url": "https://files.pythonhosted.org/packages/f9/ef/2196b9bf88ffa1bde45853c72df021fbd07a8fa91a0f59a22d14a050dc04/emcee-3.1.6-py2.py3-none-any.whl",
+     "sha256": "f2d63752023bdccf744461450e512a5b417ae7d28f18e12acd76a33de87580cb",
+     "license": "MIT"
+    },
+    {
+     "name": "nestle",
+     "version": "0.2.1",
+     "file": "nestle-0.2.1-py3-none-any.whl",
+     "url": "https://files.pythonhosted.org/packages/a6/ed/7b866669511d5a62bed0cc585d403477a453d72c61335cc4fc73f907c220/nestle-0.2.1-py3-none-any.whl",
+     "sha256": "1189771288bbcbcea782147f05ba60e3edd5c4b6051ae580f9ff3ef753c6f930",
+     "license": "MIT"
+    },
+    {
+     "name": "nestle-bilby",
+     "version": "0.1.1",
+     "file": "nestle_bilby-0.1.1-py3-none-any.whl",
+     "url": "https://files.pythonhosted.org/packages/84/4e/8e638792152a3c7283baa52d70c7a6206b91a6441ad7e3e1d64c961753b1/nestle_bilby-0.1.1-py3-none-any.whl",
+     "sha256": "0052240feecd9dba052fee162010fefb4a787e08a9012de529f98f6f5bd3f0bb",
+     "license": "MIT"
+    }
+   ]
+  },
+  "2.7.1": {
+   "pyodide": [
+    "attrs",
+    "bilby-cython",
+    "contourpy",
+    "cycler",
+    "fonttools",
+    "h5py",
+    "kiwisolver",
+    "matplotlib",
+    "micropip",
+    "numpy",
+    "packaging",
+    "pandas",
+    "pillow",
+    "pkgconfig",
+    "pyparsing",
+    "python-dateutil",
+    "pytz",
+    "scipy",
+    "six",
+    "tqdm"
+   ],
+   "pypi": [
+    {
+     "name": "corner",
+     "version": "2.3.0",
+     "file": "corner-2.3.0-py3-none-any.whl",
+     "url": "https://files.pythonhosted.org/packages/d6/cb/17a130e548ee1777f2a66e09240c531a9bf79454add7ef1198fe1e41c412/corner-2.3.0-py3-none-any.whl",
+     "sha256": "f93f0a4d77ff6852d6ddc80a6a99038117be64e3b5b49d96a82c9f5974cce126",
+     "license": "BSD 2-Clause License"
+    },
+    {
+     "name": "dill",
+     "version": "0.4.1",
+     "file": "dill-0.4.1-py3-none-any.whl",
+     "url": "https://files.pythonhosted.org/packages/1e/77/dc8c558f7593132cf8fefec57c4f60c83b16941c574ac5f619abb3ae7933/dill-0.4.1-py3-none-any.whl",
+     "sha256": "1e1ce33e978ae97fcfcff5638477032b801c46c7c65cf717f95fbc2248f79a9d",
+     "license": "BSD-3-Clause"
+    },
+    {
+     "name": "dynesty",
+     "version": "3.1.0",
+     "file": "dynesty-3.1.0-py3-none-any.whl",
+     "url": "https://files.pythonhosted.org/packages/f1/f9/41c72d0b5fb511fdf23cf62ed50da6c73d4497f03ed1cad04f214dc477c8/dynesty-3.1.0-py3-none-any.whl",
+     "sha256": "4e5b77bb261abdcb98e3a538d7498a94d5882a848f0ea46924b404396ef036d5",
+     "license": "MIT"
+    },
+    {
+     "name": "emcee",
+     "version": "3.1.6",
+     "file": "emcee-3.1.6-py2.py3-none-any.whl",
+     "url": "https://files.pythonhosted.org/packages/f9/ef/2196b9bf88ffa1bde45853c72df021fbd07a8fa91a0f59a22d14a050dc04/emcee-3.1.6-py2.py3-none-any.whl",
+     "sha256": "f2d63752023bdccf744461450e512a5b417ae7d28f18e12acd76a33de87580cb",
+     "license": "MIT"
+    },
+    {
+     "name": "nestle",
+     "version": "0.2.1",
+     "file": "nestle-0.2.1-py3-none-any.whl",
+     "url": "https://files.pythonhosted.org/packages/a6/ed/7b866669511d5a62bed0cc585d403477a453d72c61335cc4fc73f907c220/nestle-0.2.1-py3-none-any.whl",
+     "sha256": "1189771288bbcbcea782147f05ba60e3edd5c4b6051ae580f9ff3ef753c6f930",
+     "license": "MIT"
+    },
+    {
+     "name": "nestle-bilby",
+     "version": "0.1.1",
+     "file": "nestle_bilby-0.1.1-py3-none-any.whl",
+     "url": "https://files.pythonhosted.org/packages/84/4e/8e638792152a3c7283baa52d70c7a6206b91a6441ad7e3e1d64c961753b1/nestle_bilby-0.1.1-py3-none-any.whl",
+     "sha256": "0052240feecd9dba052fee162010fefb4a787e08a9012de529f98f6f5bd3f0bb",
+     "license": "MIT"
+    }
+   ]
+  },
+  "2.6.0": {
+   "pyodide": [
+    "attrs",
+    "bilby-cython",
+    "contourpy",
+    "cycler",
+    "fonttools",
+    "h5py",
+    "kiwisolver",
+    "matplotlib",
+    "micropip",
+    "numpy",
+    "packaging",
+    "pandas",
+    "pillow",
+    "pkgconfig",
+    "pyparsing",
+    "python-dateutil",
+    "pytz",
+    "scipy",
+    "six",
+    "tqdm"
+   ],
+   "pypi": [
+    {
+     "name": "corner",
+     "version": "2.3.0",
+     "file": "corner-2.3.0-py3-none-any.whl",
+     "url": "https://files.pythonhosted.org/packages/d6/cb/17a130e548ee1777f2a66e09240c531a9bf79454add7ef1198fe1e41c412/corner-2.3.0-py3-none-any.whl",
+     "sha256": "f93f0a4d77ff6852d6ddc80a6a99038117be64e3b5b49d96a82c9f5974cce126",
+     "license": "BSD 2-Clause License"
+    },
+    {
+     "name": "dill",
+     "version": "0.4.1",
+     "file": "dill-0.4.1-py3-none-any.whl",
+     "url": "https://files.pythonhosted.org/packages/1e/77/dc8c558f7593132cf8fefec57c4f60c83b16941c574ac5f619abb3ae7933/dill-0.4.1-py3-none-any.whl",
+     "sha256": "1e1ce33e978ae97fcfcff5638477032b801c46c7c65cf717f95fbc2248f79a9d",
+     "license": "BSD-3-Clause"
+    },
+    {
+     "name": "dynesty",
+     "version": "2.1.5",
+     "file": "dynesty-2.1.5-py2.py3-none-any.whl",
+     "url": "https://files.pythonhosted.org/packages/c8/01/db367a6adfa49d280cda609ad5d94b9b257058b4499c59633e6d15c5e552/dynesty-2.1.5-py2.py3-none-any.whl",
+     "sha256": "c1d20f300d6e0fb64675f01683d7511b181d2a5ac372295b1fe5f4410670530b",
+     "license": "MIT"
+    },
+    {
+     "name": "emcee",
+     "version": "3.1.6",
+     "file": "emcee-3.1.6-py2.py3-none-any.whl",
+     "url": "https://files.pythonhosted.org/packages/f9/ef/2196b9bf88ffa1bde45853c72df021fbd07a8fa91a0f59a22d14a050dc04/emcee-3.1.6-py2.py3-none-any.whl",
+     "sha256": "f2d63752023bdccf744461450e512a5b417ae7d28f18e12acd76a33de87580cb",
+     "license": "MIT"
+    },
+    {
+     "name": "nestle",
+     "version": "0.2.1",
+     "file": "nestle-0.2.1-py3-none-any.whl",
+     "url": "https://files.pythonhosted.org/packages/a6/ed/7b866669511d5a62bed0cc585d403477a453d72c61335cc4fc73f907c220/nestle-0.2.1-py3-none-any.whl",
+     "sha256": "1189771288bbcbcea782147f05ba60e3edd5c4b6051ae580f9ff3ef753c6f930",
+     "license": "MIT"
+    },
+    {
+     "name": "nestle-bilby",
+     "version": "0.1.1",
+     "file": "nestle_bilby-0.1.1-py3-none-any.whl",
+     "url": "https://files.pythonhosted.org/packages/84/4e/8e638792152a3c7283baa52d70c7a6206b91a6441ad7e3e1d64c961753b1/nestle_bilby-0.1.1-py3-none-any.whl",
+     "sha256": "0052240feecd9dba052fee162010fefb4a787e08a9012de529f98f6f5bd3f0bb",
+     "license": "MIT"
+    }
+   ]
+  },
+  "main": {
    "pyodide": [
     "attrs",
     "bilby-cython",
@@ -109,7 +331,9 @@
      "license": "MIT"
     }
    ]
-  },
+  }
+ },
+ "groups": {
   "lalsuite": {
    "pyodide": [
     "astropy",

@@ -1,5 +1,9 @@
-// Runs Pyodide and bilby off the main thread. Messages:
-//   in:  {type: "run", path, code, files, uploads, testMode, logLevel}
+// Runs Pyodide and bilby off the main thread, for the bilby version named by
+// "bilby" in this script's URL (worker.js?v=<deploy>&bilby=<version>, one of
+// the names in examples/versions.json). Messages:
+//   in:  {type: "run", path, code, files, filesFrom, uploads, testMode, logLevel}
+//        (files: the example's data files, from examples/<filesFrom>/; the
+//        example can be from another bilby version than this worker's)
 //        (uploads: [{name, bytes}], files the user added, written next to the example)
 //   in:  {type: "read", path}  (a file the run wrote; answered with "file")
 //   out: {type: "status" | "progress" | "ready" | "info" | "stream" | "image" | "files" | "file" | "results" | "done" | "error", ...}
@@ -24,8 +28,11 @@ function stream(kind) {
 
 const REPORT = "Please report this at https://github.com/ColmTalbot/bilby-browser/issues";
 const siteUrl = (path) => new URL(path, self.location).href;
+const params = new URLSearchParams(self.location.search);
+const BILBY = params.get("bilby");
 // "?v=<commit>" from app.js, so a new deploy never mixes with cached files
-const versioned = (path) => path + self.location.search;
+// (only that: files shared by all bilby versions are cached once)
+const versioned = (path) => (params.has("v") ? `${path}?v=${params.get("v")}` : path);
 
 async function fetchText(path, what) {
   const response = await fetch(versioned(path));
@@ -95,6 +102,9 @@ async function withProgress(label, expected, fn) {
 // The site-built wheel in each group (see GROUPS in py/bootstrap.py).
 const LOCAL_WHEELS = { bilby: "bilby", lalsuite: "lalsuite", gwpy: "igwn_segments" };
 
+// The file name of a site-built wheel (bilby's for this worker's version).
+const localWheel = (key) => (key === "bilby" ? index.bilby[BILBY] : index[key]);
+
 // Bytes still to download to install these groups, or 0 if unknown.
 function groupBytes(names) {
   const loaded = pyodide ? pyodide.loadedPackages : {};
@@ -108,7 +118,7 @@ function groupBytes(names) {
       files.set("pyodide:" + pkg, size);
     }
     for (const wheel of group.pypi) files.set(wheel.file, sizes.site["wheels/pypi/" + wheel.file] ?? 0);
-    const local = index[LOCAL_WHEELS[name]];
+    const local = localWheel(LOCAL_WHEELS[name]);
     if (local) files.set(local, sizes.site["wheels/" + local] ?? 0);
   }
   return [...files.values()].reduce((a, b) => a + b, 0);
@@ -120,6 +130,10 @@ async function init() {
   const lockText = await fetchText("wheels/packages.lock.json", "package lock");
   lock = JSON.parse(lockText);
   index = JSON.parse(await fetchText("wheels/index.json", "package list"));
+  if (!lock.bilby[BILBY] || !index.bilby[BILBY]) {
+    throw new Error(`This site has no bilby ${BILBY}. ${REPORT}`);
+  }
+  lock.groups.bilby = lock.bilby[BILBY];
   try {
     sizes = JSON.parse(await fetchText("wheels/sizes.json", "file sizes"));
   } catch {
@@ -139,12 +153,13 @@ async function init() {
     pyodide.runPython(await fetchText("py/bootstrap.py", "Python setup code"));
     py("add_module")("gwosc_range", await fetchText("py/gwosc_range.py", "Python setup code"));
     const urls = {};
-    for (const [key, wheel] of Object.entries(index)) {
+    for (const key of Object.keys(index)) {
+      const wheel = localWheel(key);
       if (wheel) urls[key] = siteUrl("wheels/" + wheel);
     }
     const pyUrls = pyodide.toPy(urls);
     try {
-      py("set_lock")(lockText, siteUrl("wheels/pypi/"), pyUrls);
+      py("set_lock")(lockText, siteUrl("wheels/pypi/"), pyUrls, BILBY);
     } finally {
       pyUrls.destroy();
     }
@@ -165,7 +180,7 @@ function installLalsuite() {
 const needsLalsuite = (path, code) =>
   path.startsWith("gw_examples/") || /\b(lal\w*|bilby\.gw)\b/.test(code);
 
-async function run({ path, code, files, uploads = [], testMode, logLevel = "ERROR" }) {
+async function run({ path, code, files, filesFrom = BILBY, uploads = [], testMode, logLevel = "ERROR" }) {
   const start = performance.now();
   watched = null;
   if (needsLalsuite(path, code)) {
@@ -183,7 +198,7 @@ async function run({ path, code, files, uploads = [], testMode, logLevel = "ERRO
   // copy the example's data files (priors, text data, images) next to it
   const dir = path.includes("/") ? path.slice(0, path.lastIndexOf("/")) : "";
   for (const name of files) {
-    const response = await fetch(versioned(`examples/${dir}/${name}`));
+    const response = await fetch(versioned(`examples/${filesFrom}/${dir}/${name}`));
     pyodide.FS.writeFile(name, new Uint8Array(await response.arrayBuffer()));
   }
   // and the user's own files, after them so an upload can replace one; dated

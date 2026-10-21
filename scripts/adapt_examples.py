@@ -1,14 +1,16 @@
-"""Adapt the bilby examples (fresh from scripts/fetch-bilby.sh) to Pyodide.
+"""Adapt one version's bilby examples (fresh from scripts/fetch-bilby.sh) to
+Pyodide.
 
-Edits the files in examples/ in place and writes examples/adaptations.json,
+    python3 scripts/adapt_examples.py examples/<version>
+
+Edits the files in that directory in place and writes adaptations.json there,
 which make_manifest.py merges into the manifest so the page can say what was
 changed and which examples cannot run in the browser.
 """
 
 import json
+import sys
 from pathlib import Path
-
-ROOT = Path(__file__).resolve().parent.parent / "examples"
 
 # (description, function from source text to new source text)
 EDITS = [
@@ -53,10 +55,10 @@ PARTIAL = {
 }
 
 
-def adapt():
+def adapt(root):
     adaptations = {}
-    for path in sorted(ROOT.rglob("*.py")):
-        key = path.relative_to(ROOT).as_posix()
+    for path in sorted(root.rglob("*.py")):
+        key = path.relative_to(root).as_posix()
         text = path.read_text()
         changes = []
         for description, edit in EDITS:
@@ -76,14 +78,14 @@ def adapt():
         if entry:
             adaptations[key] = entry
     missing = (set(UNSUPPORTED) | set(PARTIAL)) - {
-        p.relative_to(ROOT).as_posix() for p in ROOT.rglob("*.py")
+        p.relative_to(root).as_posix() for p in root.rglob("*.py")
     }
     for key in sorted(missing):
-        print(f"warning: {key} is listed in adapt_examples.py but no longer exists")
-    out = ROOT / "adaptations.json"
+        print(f"note: {key} is listed in adapt_examples.py but not in {root}")
+    out = root / "adaptations.json"
     out.write_text(json.dumps(adaptations, indent=1) + "\n")
     print(f"adapted {sum('changes' in e for e in adaptations.values())} examples, wrote {out}")
 
 
 if __name__ == "__main__":
-    adapt()
+    adapt(Path(sys.argv[1]))

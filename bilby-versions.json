@@ -1,0 +1,10 @@
+{
+ "_comment": "The bilby versions the site offers, in the order of the page's picker. Each is pinned to a commit of github.com/bilby-dev/bilby; releases also name their tag. pins replace the matching specs of the bilby group in py/bootstrap.py when scripts/lock-packages.mjs resolves that version. scripts/fetch-bilby.sh --update moves main to the current head.",
+ "default": "2.8.2",
+ "versions": [
+  {"name": "2.8.2", "tag": "v2.8.2", "commit": "9d0e91e31abfe0f716152bb06d2b496783520add"},
+  {"name": "2.7.1", "tag": "v2.7.1", "commit": "710e1808741c55245d4fcc2b5603f7b2f15e5ae5"},
+  {"name": "2.6.0", "tag": "v2.6.0", "commit": "80963a7b46473f9a1ccef839444a3d686da2ad2d", "pins": ["dynesty==2.1.5"]},
+  {"name": "main", "commit": "f2d0363470410172aae8cbbe6452fcd3a1d1f41c"}
+ ]
+}

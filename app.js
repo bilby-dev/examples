@@ -15,7 +15,9 @@ const editor = BilbyEditor.createEditor($("code"), {
   placeholderText: "# A blank editor: bilby, its samplers and LALSuite are available.\n# Ctrl/⌘+Enter to run.",
 });
 let worker = null;
-let current = null; // {path, files, original}
+let current = null; // {path, version, files, original, header}
+let versions = null; // examples/versions.json
+let bilby = null; // the bilby version in use: an entry of versions.versions
 let running = false;
 
 // localStorage, which can be unavailable (private windows, blocked storage)
@@ -526,7 +528,9 @@ for (const tab of TABS) {
 // ---- worker ---------------------------------------------------------------
 
 function startWorker() {
-  worker = new Worker(versioned("worker.js"));
+  const url = new URL(versioned("worker.js"), location.href);
+  url.searchParams.set("bilby", bilby.name);
+  worker = new Worker(url.href);
   worker.ready = false;
   setRunning(false);
   setStatus("Starting Python…");
@@ -619,7 +623,8 @@ function run() {
   announce(`Running ${current.path.split("/").pop()}` + (testMode ? " in test mode" : ""));
   editor.markErrorLine(null);
   worker.postMessage({
-    type: "run", path: current.path, code: editor.getValue(), files: current.files, testMode,
+    type: "run", path: current.path, code: editor.getValue(), files: current.files,
+    filesFrom: current.version, testMode,
     logLevel: $("log-level").value,
     uploads: [...uploads].map(([name, { bytes }]) => ({ name, bytes })),
   });
@@ -627,9 +632,13 @@ function run() {
 
 function stop() {
   if (!running) return;
+  restartWorker("stopped; restarting Python", "error");
+}
+
+function restartWorker(message, cls) {
   worker.terminate();
-  append("stopped; restarting Python", "error");
-  announce("Stopped; restarting Python");
+  append(message, cls);
+  announce(message[0].toUpperCase() + message.slice(1));
   block = output;
   running = false;
   workerHasFiles = false;
@@ -710,36 +719,43 @@ $("search").addEventListener("keydown", (e) => {
   }
 });
 
-async function select(path) {
-  if (path === "scratch") return openScratch();
+// Open an example of the bilby version in use. With keepCode, the editor
+// keeps what it has (edits made to the same example in another version).
+// Returns false if this version has no such example.
+async function select(path, { keepCode = false } = {}) {
+  if (path === "scratch") {
+    openScratch();
+    return true;
+  }
   const link = document.querySelector(`#tree a[data-path="${CSS.escape(path)}"]`);
-  if (!link) return;
+  if (!link) return false;
   for (const a of document.querySelectorAll("#tree a.active")) a.classList.remove("active");
   link.classList.add("active");
   // open the folders containing this example
   for (let el = link.parentElement; el && el.id !== "tree"; el = el.parentElement) {
     if (el.tagName === "DETAILS") el.open = true;
   }
-  const response = await fetch(versioned("examples/" + path));
+  const response = await fetch(versioned(`examples/${bilby.name}/${path}`));
   // the shebang and docstring are shown as formatted text above the editor
   // instead of in it; Download puts them back
   const lines = (await response.text()).split("\n");
   const headerLines = Number(link.dataset.headerLines);
   const code = lines.slice(headerLines).join("\n");
   current = {
-    path, files: JSON.parse(link.dataset.files), original: code,
+    path, version: bilby.name, files: JSON.parse(link.dataset.files), original: code,
     header: headerLines ? lines.slice(0, headerLines).join("\n") + "\n" : "",
   };
-  editor.load(code);
+  if (!keepCode) editor.load(code);
   $("title").textContent = path;
   showDoc(JSON.parse(link.dataset.doc));
   showNotes(JSON.parse(link.dataset.info));
+  return true;
 }
 
 // A blank editor, not tied to an example; its text is kept in this browser.
 function openScratch() {
   for (const a of document.querySelectorAll("#tree a.active")) a.classList.remove("active");
-  current = { path: SCRATCH, files: [], original: "", header: "" };
+  current = { path: SCRATCH, version: bilby.name, files: [], original: "", header: "" };
   editor.load(stored("bilby-scratch") || "");
   $("title").textContent = SCRATCH;
   showDoc(["<p>A blank editor. Its contents are kept in this browser; Reset clears it.</p>"]);
@@ -794,18 +810,65 @@ function showNotes({ changes, support }) {
   }
 }
 
-async function main() {
-  const manifest = await (await fetch(versioned("examples/manifest.json"))).json();
+// ---- bilby versions ------------------------------------------------------
+// The page offers each version in examples/versions.json; ?bilby=<name> in
+// its URL picks one (the default otherwise). Switching restarts Python with
+// that version and keeps the example open, with any edits.
+
+const DEFAULT_EXAMPLE = "core_examples/linear_regression.py";
+
+// Show the examples of this version (bilby and its tree; not the worker).
+async function showVersion(name) {
+  bilby = versions.versions.find((v) => v.name === name);
+  $("bilby-version").value = name;
+  $("bilby-version").title = `bilby ${bilby.version}: the version the examples come from and run with`;
+  const manifest = await (await fetch(versioned(`examples/${name}/manifest.json`))).json();
   const tree = document.createElement("div");
+  tree.id = "examples";
   buildTree(manifest, tree);
+  $("examples")?.remove();
   $("tree").insertBefore(tree, $("tree").querySelector(".links")); // links stay last (phones)
-  if (manifest.commit) {
-    const link = $("source");
-    link.href = `https://github.com/bilby-dev/bilby/tree/${manifest.commit}/examples`;
-    link.textContent = `examples from bilby@${manifest.commit.slice(0, 8)}`;
+  if ($("search").value) filterTree($("search").value);
+  const link = $("source");
+  link.href = `https://github.com/bilby-dev/bilby/tree/${bilby.tag || bilby.commit}/examples`;
+  link.textContent = bilby.tag ? `examples from bilby ${bilby.tag}` : `examples from bilby@${bilby.commit.slice(0, 8)}`;
+}
+
+async function switchVersion(name) {
+  const url = new URL(location.href);
+  if (name === versions.default) url.searchParams.delete("bilby");
+  else url.searchParams.set("bilby", name);
+  history.replaceState(null, "", url);
+  const before = current;
+  const edited = editor.getValue() !== before.original;
+  await showVersion(name);
+  const label = bilby.version === name ? name : `${name} (${bilby.version})`;
+  restartWorker(`switched to bilby ${label}; restarting Python`, "info");
+  if (before.path === SCRATCH) return;
+  if (await select(before.path, { keepCode: edited })) {
+    if (edited) append(`kept your edits to ${before.path}; Reset gives bilby ${name}'s version`, "info");
+  } else {
+    // not an example in this version: keep it (and its data files) as it was
+    current = before;
+    append(`${before.path} is not one of bilby ${name}'s examples; it stays open, from bilby ${before.version}`, "info");
   }
+}
+
+async function main() {
+  versions = await (await fetch(versioned("examples/versions.json"))).json();
+  const picker = $("bilby-version");
+  for (const v of versions.versions) picker.add(new Option(v.name, v.name));
+  const wanted = new URLSearchParams(location.search).get("bilby");
+  await showVersion(versions.versions.some((v) => v.name === wanted) ? wanted : versions.default);
+  startWorker();
+  picker.addEventListener("change", () => switchVersion(picker.value));
   window.addEventListener("hashchange", () => select(decodeURIComponent(location.hash.slice(1))));
-  await select(decodeURIComponent(location.hash.slice(1)) || "core_examples/linear_regression.py");
+  const path = decodeURIComponent(location.hash.slice(1));
+  if (!(await select(path || DEFAULT_EXAMPLE)) && path) {
+    append(`${path} is not one of bilby ${bilby.name}'s examples`, "info");
+    history.replaceState(null, "", "#" + DEFAULT_EXAMPLE);
+    await select(DEFAULT_EXAMPLE);
+  }
 }
 
 // bilby test mode: on by default when served locally (development), off on
@@ -1020,5 +1083,4 @@ $("theme").addEventListener("click", () => {
 });
 $("reset").addEventListener("click", () => { if (current) editor.reset(current.original); });
 
-startWorker();
 main();

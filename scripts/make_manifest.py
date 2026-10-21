@@ -1,4 +1,6 @@
-"""Write examples/manifest.json: the nested tree of examples for the page.
+"""Write examples/<version>/manifest.json, for each version in
+examples/versions.json: the nested tree of that version's examples for the
+page.
 
 Each directory node lists its subdirectories, its .py examples and its other
 files, which are copied next to the example before it runs (priors, data files,
@@ -105,17 +107,17 @@ def describe(path):
     }
 
 
-def walk(directory, adaptations):
+def walk(root, directory, adaptations):
     node = {"name": directory.name, "dirs": [], "examples": [], "files": []}
     for path in sorted(directory.iterdir()):
         if path.name.startswith(".") or path.name in SKIP or path.name == "__pycache__":
             continue
         if path.is_dir():
-            child = walk(path, adaptations)
+            child = walk(root, path, adaptations)
             if child["examples"] or child["dirs"]:
                 node["dirs"].append(child)
         elif path.suffix == ".py":
-            key = path.relative_to(ROOT).as_posix()
+            key = path.relative_to(root).as_posix()
             node["examples"].append({
                 "name": path.name,
                 "path": key,
@@ -128,11 +130,10 @@ def walk(directory, adaptations):
 
 
 if __name__ == "__main__":
-    out = ROOT / "manifest.json"
-    adaptations_file = ROOT / "adaptations.json"
-    adaptations = json.loads(adaptations_file.read_text()) if adaptations_file.exists() else {}
-    tree = walk(ROOT, adaptations)
-    commit = ROOT / ".commit"
-    tree["commit"] = commit.read_text().strip() if commit.exists() else None
-    out.write_text(json.dumps(tree, indent=1) + "\n")
-    print(f"wrote {out}")
+    for version in json.loads((ROOT / "versions.json").read_text())["versions"]:
+        root = ROOT / version["name"]
+        adaptations_file = root / "adaptations.json"
+        adaptations = json.loads(adaptations_file.read_text()) if adaptations_file.exists() else {}
+        out = root / "manifest.json"
+        out.write_text(json.dumps(walk(root, root, adaptations), indent=1) + "\n")
+        print(f"wrote {out}")

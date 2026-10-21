@@ -9,7 +9,7 @@ scripts in `scripts/` (run together by `scripts/dev.sh` locally and by
 
 | What | Source |
 |---|---|
-| `examples/`, `wheels/bilby-*.whl` | bilby commit pinned in `bilby-commit.txt` (`scripts/fetch-bilby.sh`) |
+| `examples/`, `wheels/bilby-*.whl` | bilby commits pinned in `bilby-versions.json` (`scripts/fetch-bilby.sh`) |
 | `wheels/igwn_segments-*.whl` | igwn-segments sdist from PyPI (`scripts/build-igwn-segments.sh`) |
 | `wheels/lalsuite-*.whl` | GitLab job artifact pinned with sha256 in `lalsuite-wheel.json` (`scripts/fetch-lalsuite.sh`) |
 

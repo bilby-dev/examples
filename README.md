@@ -6,15 +6,25 @@ for background and `LOCAL-ONLY.md` for what is still tied to this machine.
 
 ## Where bilby comes from
 
-`bilby-commit.txt` pins one commit of
-[bilby-dev/bilby](https://github.com/bilby-dev/bilby). `scripts/fetch-bilby.sh`
-takes both the examples (`examples/`, without notebooks) and a bilby wheel
-(`wheels/`) from that commit, so the examples always match the bilby that runs
-them. Neither is stored in this repository. To move to the current `main`:
+The page offers several bilby versions, listed in `bilby-versions.json`
+(currently 2.8.2, the default, 2.7.1, 2.6.0 and `main`), each pinned to a
+commit of [bilby-dev/bilby](https://github.com/bilby-dev/bilby). The picker
+in the header switches between them (it restarts Python and keeps the open
+example, with any edits), and `?bilby=<name>` in the URL picks one.
+`scripts/fetch-bilby.sh` takes both the examples (`examples/<name>/`, without
+notebooks) and a bilby wheel (`wheels/`) from each version's commit, so the
+examples always match the bilby that runs them. Neither is stored in this
+repository. To move `main` to the current head:
 
 ```bash
 scripts/fetch-bilby.sh --update
 ```
+
+To add a version, add it to `bilby-versions.json` (with `pins` if it needs
+older dependencies than `py/bootstrap.py` asks for, as 2.6.0 does for
+dynesty), then run `scripts/fetch-bilby.sh` and `node scripts/lock-packages.mjs`.
+Everything else (LALSuite, the other wheels, the page) is shared by all
+versions.
 
 ## Other wheels
 
@@ -49,12 +59,14 @@ https://colmtalbot.github.io/bilby-browser/. It runs the scripts above to genera
 npm install
 npx playwright install chromium   # once
 scripts/dev.sh                    # once, to generate examples/ and wheels/
-npm test                          # every supported example in Node (test mode)
+npm test                          # every supported example in Node (test mode), every bilby version
+npm test -- --bilby 2.6.0         # one bilby version
 npm run test:browser              # Playwright smoke test of the page
 python -m unittest tests/test_gwosc_range.py   # GWOSC range reads (needs gwpy==4.0.2)
 ```
 
-Expected failures are listed with reasons in `tests/known-failures.json`.
+Expected failures are listed with reasons in `tests/known-failures.json`,
+for every version or for one. CI tests each version in its own job.
 CI runs both before every deploy.
 
 ## Licences

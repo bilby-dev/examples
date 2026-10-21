@@ -1,14 +1,27 @@
 {
- "_comment": "Examples expected to fail under scripts/test-all.mjs (bilby test mode). Unsupported examples (scripts/adapt_examples.py) are skipped, not listed here.",
- "core_examples/linear_regression_grid.py": "test mode: plot_corner returns None, which the example uses",
- "core_examples/linear_regression_with_Fisher.py": "test mode: plot_corner returns None, which the example uses",
- "gw_examples/injection_examples/fake_sampler_example.py": "test mode: plot_corner returns None, which the example uses",
- "gw_examples/injection_examples/non_tensor.py": "test mode: plot_corner returns None, which the example uses",
- "gw_examples/injection_examples/relative_binning.py": "test mode: plot_corner returns None, which the example uses",
- "gw_examples/injection_examples/plot_time_domain_data.py": "test mode: plot_time_domain_data writes no PNG, which the example opens",
- "core_examples/multivariate_gaussian_prior.py": "bilby main: PriorDict.rescale cannot handle joint priors since #886",
- "gw_examples/injection_examples/bns_polytrope_eos_example.py": "LALSuite: CreateSimNeutronStarFamily now needs min_fam",
- "gw_examples/injection_examples/bns_spectral_pca_eos_example.py": "LALSuite: CreateSimNeutronStarFamily now needs min_fam",
- "gw_examples/data_examples/GW150914.py": "Node: Pyodide has no network access under Node, so GWOSC data cannot load (works in the browser)",
- "gw_examples/data_examples/GW190425.py": "Node: Pyodide has no network access under Node, so GWOSC data cannot load (works in the browser)"
+ "_comment": "Examples expected to fail under scripts/test-all.mjs (bilby test mode): under \"all\" for every bilby version, under a version's name for that version only. Unsupported examples (scripts/adapt_examples.py) are skipped, not listed here.",
+ "all": {
+  "core_examples/linear_regression_grid.py": "test mode: plot_corner returns None, which the example uses",
+  "core_examples/linear_regression_with_Fisher.py": "test mode: plot_corner returns None, which the example uses",
+  "gw_examples/injection_examples/fake_sampler_example.py": "test mode: plot_corner returns None, which the example uses",
+  "gw_examples/injection_examples/non_tensor.py": "test mode: plot_corner returns None, which the example uses",
+  "gw_examples/injection_examples/relative_binning.py": "test mode: plot_corner returns None, which the example uses",
+  "gw_examples/injection_examples/plot_time_domain_data.py": "test mode: plot_time_domain_data writes no PNG, which the example opens",
+  "gw_examples/injection_examples/bns_polytrope_eos_example.py": "LALSuite: CreateSimNeutronStarFamily now needs min_fam",
+  "gw_examples/injection_examples/bns_spectral_pca_eos_example.py": "LALSuite: CreateSimNeutronStarFamily now needs min_fam",
+  "gw_examples/data_examples/GW150914.py": "Node: Pyodide has no network access under Node, so GWOSC data cannot load (works in the browser)",
+  "gw_examples/data_examples/GW190425.py": "Node: Pyodide has no network access under Node, so GWOSC data cannot load (works in the browser)",
+  "core_examples/multivariate_gaussian_prior.py": "fails in every version: 2.6.0 under test mode (plot_corner returns None), later versions because PriorDict.rescale cannot handle joint priors since #886"
+ },
+ "2.8.2": {
+  "gw_examples/injection_examples/calibration_marginalization_example.py": "releases: reweighting always opens a multiprocessing.Pool, which Pyodide does not have (main uses bilby's own pool)",
+  "gw_examples/injection_examples/marginalized_likelihood.py": "bilby: compute_per_detector_log_likelihood raises KeyError 'time_jitter' with time marginalization"
+ },
+ "2.7.1": {
+  "gw_examples/injection_examples/calibration_marginalization_example.py": "releases: reweighting always opens a multiprocessing.Pool, which Pyodide does not have (main uses bilby's own pool)",
+  "gw_examples/injection_examples/marginalized_likelihood.py": "bilby: compute_per_detector_log_likelihood raises KeyError 'time_jitter' with time marginalization"
+ },
+ "2.6.0": {
+  "gw_examples/injection_examples/calibration_marginalization_example.py": "releases: reweighting always opens a multiprocessing.Pool, which Pyodide does not have (main uses bilby's own pool)"
+ }
 }
