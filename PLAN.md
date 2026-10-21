@@ -60,8 +60,9 @@ Pyodide. Background on the LALSuite Pyodide build is in `NOTES.md`.
 - **32-bit WebAssembly**: floats are 64-bit, but sizes and numpy's default
   integer are 32-bit (details in `NOTES.md`). scipy's spectral helper
   `_fft_helper` is replaced so PSDs do not hit numpy's 2 GB view limit.
-- **bilby and examples** come from one pinned commit of bilby-dev/bilby
-  `main` (`bilby-commit.txt`; `scripts/fetch-bilby.sh --update` moves it).
+- **bilby and examples** come from pinned commits of bilby-dev/bilby, one
+  per version the page offers (`bilby-versions.json`: releases and `main`;
+  `scripts/fetch-bilby.sh --update` moves `main`).
   `scripts/adapt_examples.py` edits them for Pyodide (pymultinest → nestle,
   cpnest → dynesty, `npool=` lines removed) and flags unsupported ones; the
   page shows both. Neither examples nor wheels are stored in git.

@@ -1,5 +1,6 @@
-# Test the examples and the page. Independent of deployment (pages.yml):
-# failures here are reported but do not stop the site from deploying.
+# Test the examples and the page, in one job per bilby version in
+# bilby-versions.json. Independent of deployment (pages.yml): failures here
+# are reported but do not stop the site from deploying.
 name: Tests
 
 on:
@@ -16,8 +17,23 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test:
+  versions:
     runs-on: ubuntu-latest
+    outputs:
+      names: ${{ steps.names.outputs.names }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: names
+        run: echo "names=$(jq -c '[.versions[].name]' bilby-versions.json)" >> "$GITHUB_OUTPUT"
+
+  test:
+    needs: versions
+    name: test (bilby ${{ matrix.bilby }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        bilby: ${{ fromJSON(needs.versions.outputs.names) }}
     steps:
       - uses: actions/checkout@v4
 
@@ -35,7 +51,7 @@ jobs:
           path: |
             wheels
             .cache
-          key: site-${{ hashFiles('bilby-commit.txt', 'lalsuite-wheel.json', 'packages.lock.json', 'scripts/fetch-bilby.sh', 'scripts/build-igwn-segments.sh') }}
+          key: site-${{ hashFiles('bilby-versions.json', 'lalsuite-wheel.json', 'packages.lock.json', 'scripts/fetch-bilby.sh', 'scripts/build-igwn-segments.sh') }}
 
       - name: Install Node tools and build the code editor
         run: |
@@ -63,9 +79,10 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Run every supported example in Node (bilby test mode)
-        run: node scripts/test-all.mjs
+        run: node scripts/test-all.mjs --bilby "${{ matrix.bilby }}"
 
       - name: Smoke-test the assembled site in Chromium
         run: npx playwright test
         env:
           SITE_DIR: _site
+          BILBY_VERSION: ${{ matrix.bilby }}

@@ -19,7 +19,8 @@ def sha256(path):
 
 def main():
     lock = json.loads((ROOT / "packages.lock.json").read_text())
-    wheels = {w["file"]: w for group in lock["groups"].values() for w in group["pypi"]}
+    groups = [*lock["bilby"].values(), *lock["groups"].values()]
+    wheels = {w["file"]: w for group in groups for w in group["pypi"]}
     OUT.mkdir(parents=True, exist_ok=True)
     for stale in set(p.name for p in OUT.glob("*.whl")) - set(wheels):
         (OUT / stale).unlink()

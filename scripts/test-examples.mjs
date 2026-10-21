@@ -3,6 +3,8 @@
 //   node scripts/test-examples.mjs                      # install + import check only
 //   node scripts/test-examples.mjs core_examples/linear_regression.py ...
 //   node scripts/test-examples.mjs --full ...         # without bilby test mode
+//   node scripts/test-examples.mjs --bilby 2.6.0 ...  # another bilby version
+//                                                    # (default: the site's default)
 //
 // Uses the same py/bootstrap.py, wheels and package lock as the browser
 // worker; LALSuite and extras are installed when an example needs them.
@@ -15,8 +17,14 @@ import { loadPyodide } from "pyodide";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 // bilby test mode (short sampling runs) is on unless --full is given
-const full = process.argv.includes("--full");
-const examples = process.argv.slice(2).filter((a) => a !== "--full");
+const args = process.argv.slice(2);
+const full = args.includes("--full");
+const versionAt = args.indexOf("--bilby");
+const versions = JSON.parse(readFileSync(join(ROOT, "examples/versions.json"), "utf8"));
+const BILBY = versionAt >= 0 ? args[versionAt + 1] : versions.default;
+if (!versions.versions.some((v) => v.name === BILBY)) throw new Error(`no bilby ${BILBY} in examples/versions.json`);
+const EXAMPLES = join(ROOT, "examples", BILBY);
+const examples = args.filter((a, i) => a !== "--full" && (versionAt < 0 || (i !== versionAt && i !== versionAt + 1)));
 
 const t0 = performance.now();
 const elapsed = () => ((performance.now() - t0) / 1000).toFixed(1) + " s";
@@ -42,6 +50,7 @@ try {
 }
 pyodide.FS.mkdirTree("/tmp/wheels/pypi");
 const urls = {};
+index.bilby = index.bilby[BILBY];
 for (const [key, wheel] of Object.entries(index)) {
   if (!wheel) continue;
   pyodide.FS.writeFile(`/tmp/wheels/${wheel}`, readFileSync(join(WHEELS, wheel)));
@@ -51,7 +60,7 @@ for (const wheel of readdirSync(join(WHEELS, "pypi"))) {
   pyodide.FS.writeFile(`/tmp/wheels/pypi/${wheel}`, readFileSync(join(WHEELS, "pypi", wheel)));
 }
 const pyUrls = pyodide.toPy(urls);
-py("set_lock")(lock, "emfs:/tmp/wheels/pypi/", pyUrls);
+py("set_lock")(lock, "emfs:/tmp/wheels/pypi/", pyUrls, BILBY);
 pyUrls.destroy();
 
 console.log(`bilby test mode ${full ? "off" : "on"}`);
@@ -65,7 +74,7 @@ let failed = 0;
 for (const path of examples) {
   console.log(`\n=== ${path}`);
   const dir = dirname(path);
-  const code = readFileSync(join(ROOT, "examples", path), "utf8");
+  const code = readFileSync(join(EXAMPLES, path), "utf8");
   if (!lalsuite && needsLalsuite(path, code)) {
     console.log("LAL", await py("install_lalsuite")(), "installed after", elapsed());
     lalsuite = true;
@@ -75,8 +84,8 @@ for (const path of examples) {
   py("set_test_mode")(!full);
   const globals = pyodide.toPy(py("prepare")(path).toJs({ dict_converter: Object.fromEntries }));
   // copy the example's sibling data files (priors, text data, images)
-  for (const name of readdirSync(join(ROOT, "examples", dir))) {
-    const src = join(ROOT, "examples", dir, name);
+  for (const name of readdirSync(join(EXAMPLES, dir))) {
+    const src = join(EXAMPLES, dir, name);
     if (statSync(src).isFile() && !name.endsWith(".py")) {
       pyodide.FS.writeFile(join("/home/pyodide/examples", dir, name), readFileSync(src));
     }

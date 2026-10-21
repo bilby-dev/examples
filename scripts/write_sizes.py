@@ -62,7 +62,8 @@ def pyodide_sizes(version, names):
 
 def main():
     lock = json.loads((ROOT / "packages.lock.json").read_text())
-    names = {name for group in lock["groups"].values() for name in group["pyodide"]}
+    groups = [*lock["bilby"].values(), *lock["groups"].values()]
+    names = {name for group in groups for name in group["pyodide"]}
     out = {"site": {
         path.relative_to(ROOT).as_posix(): path.stat().st_size
         for path in sorted(WHEELS.glob("*.whl")) + sorted((WHEELS / "pypi").glob("*.whl"))

@@ -7,21 +7,37 @@
 //
 // Needs the local wheels (scripts/dev.sh, or the fetch/build scripts).
 // Each group is resolved in a fresh Pyodide with only the bilby group
-// installed, so every group is complete on its own.
+// installed, so every group is complete on its own. The bilby group is
+// locked for each version in bilby-versions.json (with that version's pins);
+// the other groups are resolved against every version too, and must come out
+// the same, so they are locked once.
 import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadPyodide } from "pyodide";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const LOCAL = { bilby: "bilby-", lalsuite: "lalsuite-", igwn_segments: "igwn_segments-" };
+const LOCAL = { lalsuite: "lalsuite-", igwn_segments: "igwn_segments-" };
+const config = JSON.parse(readFileSync(join(ROOT, "bilby-versions.json"), "utf8"));
+const built = JSON.parse(readFileSync(join(ROOT, "examples/versions.json"), "utf8")).versions;
 
-async function freshPyodide() {
+// A Pyodide set up to resolve the groups for this entry of bilby-versions.json
+async function freshPyodide(version) {
   const pyodide = await loadPyodide();
   pyodide.registerJsModule("_site", { image() {} });
   pyodide.runPython(readFileSync(join(ROOT, "py/bootstrap.py"), "utf8"));
+  // the version's pins replace the bilby group's specs of the same packages
+  pyodide.runPython(`
+import re
+_pins = ${JSON.stringify(version.pins ?? [])}
+_name = lambda spec: re.split(r"[=<>!~ \\[]", spec)[0].lower()
+GROUPS["bilby"]["pypi"] = [s for s in GROUPS["bilby"]["pypi"] if _name(s) not in {_name(p) for p in _pins}] + _pins
+`);
   pyodide.FS.mkdirTree("/tmp/wheels");
-  const urls = {};
+  const bilbyWheel = built.find((v) => v.name === version.name)?.wheel;
+  if (!bilbyWheel) throw new Error(`no wheel for bilby ${version.name}; run scripts/fetch-bilby.sh first`);
+  pyodide.FS.writeFile(`/tmp/wheels/${bilbyWheel}`, readFileSync(join(ROOT, "wheels", bilbyWheel)));
+  const urls = { bilby: `emfs:/tmp/wheels/${bilbyWheel}` };
   for (const [key, prefix] of Object.entries(LOCAL)) {
     const wheel = readdirSync(join(ROOT, "wheels")).filter((f) => f.startsWith(prefix) && f.endsWith(".whl")).sort().pop();
     if (!wheel) throw new Error(`no ${prefix}*.whl in wheels/; run scripts/dev.sh first`);
@@ -58,8 +74,8 @@ async function pypiWheel(name, version) {
   return { name, version, file: wheel.filename, url: wheel.url, sha256: wheel.digests.sha256, license };
 }
 
-async function lockGroup(name, base) {
-  const pyodide = await freshPyodide();
+async function lockGroup(name, version) {
+  const pyodide = await freshPyodide(version);
   const install = pyodide.globals.get("install_group");
   if (name !== "bilby") await install("bilby");
   const before = name === "bilby" ? {} : installed(pyodide);
@@ -73,19 +89,29 @@ async function lockGroup(name, base) {
     pypi.push(await pypiWheel(pkg, info.version));
   }
   pypi.sort((a, b) => a.name.localeCompare(b.name));
-  console.log(`${name}: ${pyodidePackages.length} Pyodide packages, ${pypi.length} PyPI wheels`);
+  console.log(`bilby ${version.name}, ${name}: ${pyodidePackages.length} Pyodide packages, ${pypi.length} PyPI wheels`);
   return { pyodide: pyodidePackages, pypi, pyodideVersion: pyodide.version };
 }
 
+const bilby = {};
 const groups = {};
 let pyodideVersion;
-const names = (await freshPyodide()).globals.get("GROUPS").toJs({ dict_converter: Object.fromEntries });
-for (const name of Object.keys(names)) {
-  const { pyodideVersion: version, ...group } = await lockGroup(name);
-  groups[name] = group;
-  pyodideVersion = version;
+const names = Object.keys((await freshPyodide(config.versions[0])).globals.get("GROUPS").toJs({ dict_converter: Object.fromEntries }));
+for (const version of config.versions) {
+  for (const name of names) {
+    const { pyodideVersion: v, ...group } = await lockGroup(name, version);
+    pyodideVersion = v;
+    if (name === "bilby") {
+      bilby[version.name] = group;
+    } else if (!(name in groups)) {
+      groups[name] = group;
+    } else if (JSON.stringify(group) !== JSON.stringify(groups[name])) {
+      throw new Error(`the ${name} group resolves differently with bilby ${version.name} than with ` +
+        `${config.versions[0].name}; lock it per version like the bilby group`);
+    }
+  }
 }
-const lock = { pyodide_version: pyodideVersion, generated_by: "scripts/lock-packages.mjs", groups };
+const lock = { pyodide_version: pyodideVersion, generated_by: "scripts/lock-packages.mjs", bilby, groups };
 writeFileSync(join(ROOT, "packages.lock.json"), JSON.stringify(lock, null, 1) + "\n");
 console.log("wrote packages.lock.json");
 process.exit(0);

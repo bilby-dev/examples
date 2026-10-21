@@ -318,6 +318,7 @@
     #status { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .toggle, .log-level { flex: none; }
     .log-level > span { display: none; }
+    nav .links .bilby-version > span { display: inline; }
     .log-level select { font-size: 12px; padding: 2px 0; }
     main, body.tree-hidden main, body.editor-hidden main, body.output-hidden main { grid-template-columns: minmax(0, 1fr); padding: 10px 12px; gap: 12px; }
     nav, body.tree-hidden nav { display: flex; position: fixed; z-index: 30; top: 0; bottom: 0; left: 0;
@@ -382,6 +383,10 @@
     </select>
   </label>
   <span class="links hint">
+    <label class="log-level bilby-version">
+      <span>bilby</span>
+      <select id="bilby-version" aria-label="bilby version"></select>
+    </label>
     <a id="source"></a>
     <a href="https://github.com/ColmTalbot/bilby-browser">Site source</a>
     <a href="licenses.html">Licences</a>

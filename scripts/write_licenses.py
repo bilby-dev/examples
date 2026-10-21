@@ -1,7 +1,7 @@
 """Write licenses.html: what software this site distributes, under which
 licences, and where the exact source of each is.
 
-Generated from the files that pin everything (bilby-commit.txt,
+Generated from the files that pin everything (bilby-versions.json,
 lalsuite-wheel.json, packages.lock.json), so it always matches what is
 deployed. Run by scripts/dev.sh and the Pages workflow; the licence texts
 it links to are in licenses/.
@@ -25,24 +25,25 @@ def row(*cells):
 
 
 def main():
-    bilby_commit = (ROOT / "bilby-commit.txt").read_text().strip()
+    bilby = json.loads((ROOT / "bilby-versions.json").read_text())["versions"]
     lal = json.loads((ROOT / "lalsuite-wheel.json").read_text())
     lock = json.loads((ROOT / "packages.lock.json").read_text())
-    bilby_tree = f"https://github.com/bilby-dev/bilby/tree/{bilby_commit}"
     lal_tree = f"{lal['source_repo']}/-/tree/{lal['source_commit']}"
 
-    hosted = [
-        row(
-            "bilby (wheel)", "MIT", link("examples/LICENSE.md", "licence"),
-            f"{link(bilby_tree, 'bilby-dev/bilby@' + bilby_commit[:8])}, built by "
-            f"{link(REPO + '/blob/main/scripts/fetch-bilby.sh', 'scripts/fetch-bilby.sh')}",
-        ),
-        row(
-            "bilby examples", "MIT", link("examples/LICENSE.md", "licence"),
-            f"{link(bilby_tree + '/examples', 'examples at the same commit')}, adapted for "
-            f"Pyodide by {link(REPO + '/blob/main/scripts/adapt_examples.py', 'scripts/adapt_examples.py')} "
+    hosted = []
+    for version in bilby:
+        tree = f"https://github.com/bilby-dev/bilby/tree/{version['commit']}"
+        licence = link(f"examples/{version['name']}/LICENSE.md", "licence")
+        source = link(tree, "bilby-dev/bilby@" + (version.get("tag") or version["commit"][:8]))
+        hosted.append(row(
+            f"bilby {html.escape(version['name'])} (wheel and examples)", "MIT", licence,
+            f"{source}, wheel built by "
+            f"{link(REPO + '/blob/main/scripts/fetch-bilby.sh', 'scripts/fetch-bilby.sh')}; "
+            f"{link(tree + '/examples', 'examples')} adapted for Pyodide by "
+            f"{link(REPO + '/blob/main/scripts/adapt_examples.py', 'scripts/adapt_examples.py')} "
             "(each change is listed in the page above the example)",
-        ),
+        ))
+    hosted += [
         row(
             f"igwn-segments {IGWN_SEGMENTS_VERSION} (<strong>modified</strong>)",
             "GPL-3.0-or-later", link("licenses/GPL-3.0.txt", "GPL-3.0"),
@@ -75,7 +76,7 @@ def main():
         for lib in lal["bundled"]
     ]
     pypi = {}
-    for group in lock["groups"].values():
+    for group in [*lock["bilby"].values(), *lock["groups"].values()]:
         for wheel in group["pypi"]:
             pypi[wheel["file"]] = wheel
     pypi_rows = [

@@ -25,6 +25,11 @@ import pyodide_js
 # depend on PyPI. The local wheels (bilby, LALSuite, igwn-segments; see
 # wheels/index.json) are installed separately.
 #
+# The "bilby" group is locked once for each bilby version in
+# bilby-versions.json, whose "pins" replace the specs here of the same
+# packages (an older bilby may need an older dynesty); the other groups are
+# the same for every version.
+#
 # bilby-cython is optional for bilby but makes the GW time and geometry
 # functions faster. nestle-bilby provides the nestle sampler through the
 # bilby.samplers entry point; it is installed without dependencies because
@@ -79,11 +84,12 @@ _wheel_urls = {}  # index.json key -> URL of a local wheel
 _installed = set()
 
 
-def set_lock(lock_json, pypi_base_url, wheel_urls):
+def set_lock(lock_json, pypi_base_url, wheel_urls, bilby_version=None):
     """Install from `lock_json` (the text of packages.lock.json), with its
-    PyPI wheels under `pypi_base_url`. `wheel_urls` maps wheels/index.json
-    keys to URLs of the local wheels. Without a lock (only when
-    scripts/lock-packages.mjs resolves the groups), PyPI is used."""
+    PyPI wheels under `pypi_base_url`, and its "bilby" group for
+    `bilby_version`. `wheel_urls` maps wheels/index.json keys to URLs of the
+    local wheels (for "bilby", of that version's wheel). Without a lock (only
+    when scripts/lock-packages.mjs resolves the groups), PyPI is used."""
     import json
 
     global _lock, _pypi_base_url
@@ -95,6 +101,10 @@ def set_lock(lock_json, pypi_base_url, wheel_urls):
             f"packages.lock.json was made for Pyodide {_lock['pyodide_version']}, "
             f"but this is Pyodide {pyodide_js.version}. {REPORT}"
         )
+    if _lock:
+        if bilby_version not in _lock["bilby"]:
+            raise RuntimeError(f"This site has no package list for bilby {bilby_version}. {REPORT}")
+        _lock["groups"]["bilby"] = _lock["bilby"][bilby_version]
 
 
 async def install_group(name):
