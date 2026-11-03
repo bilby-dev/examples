@@ -44,11 +44,8 @@ These notes were written from the LALSuite Pyodide work (branch
   ```
 
   The release branches are the `lalsuite-v8.0.0` or `lalsuite-v7.26.16`
-  tag plus the `pyodide-wheels` commits (8.0.0 also needs a fix to its
-  CI rules, which otherwise create no pipeline for branch pushes). The
-  site pins the 8.0.0 build (job 5248112) in `lalsuite-wheel.json`.
-  Against 7.26.16, the same examples pass; the one API change bilby meets
-  is `CreateSimNeutronStarFamily(eos, min_fam)`.
+  tag plus the `pyodide-wheels` commits. The site pins the 8.0.0 build
+  (job 5248112) in `lalsuite-wheel.json`.
 
 - Or the latest from the branch, which only finds jobs in pipelines where
   every job succeeded (so it fails while, or if, other jobs fail):
@@ -69,8 +66,7 @@ These notes were written from the LALSuite Pyodide work (branch
   Its `install_requires` (igwn-ligolw, lscsoft-glue, …) are not all
   installable in Pyodide; skip them.
 - LAL data files are inside the wheel at
-  `/lib/python3.13/site-packages/_lalsuite/data` (`lalapps/data` in
-  7.26.16) and are found
+  `/lib/python3.13/site-packages/_lalsuite/data` and are found
   automatically. Large waveform data (e.g. NR surrogate HDF5 files from
   Zenodo, ~100 MB each) must be fetched separately and their directory
   added to `LAL_DATA_PATH`.
