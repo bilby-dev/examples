@@ -12,8 +12,8 @@ These notes were written from the LALSuite Pyodide work (branch
 - **LALSuite wheel for Pyodide** (LAL, LALSimulation, LALFrame), built in
   a container (`wheel/pyodide/run.sh`) and in CI on the fork.
   - Pyodide 0.29.5, Python 3.13, ABI `pyodide_2025_0_wasm32`.
-  - Example names: `lalsuite-7.26.16-cp313-cp313-pyodide_2025_0_wasm32.whl`
-    (release, 15 MB), `lalsuite-7.26.16.1-…` (master, 19 MB).
+  - Example names: `lalsuite-8.0.0-cp313-cp313-pyodide_2025_0_wasm32.whl`
+    (release, 19 MB), `lalsuite-7.26.16-…` (previous release, 15 MB).
   - Waveforms tested under Node (LALSimulation's Python tests pass except
     the NRSur7dq4Remnant cases, which also fail natively) and in Chrome
     (IMRPhenomXPHM, SEOBNRv4, NRSur3dq8Remnant, gwsignal).
@@ -30,22 +30,25 @@ These notes were written from the LALSuite Pyodide work (branch
   until a newer one succeeds. Download and pin the wheel well before
   expiry; the site should not depend on GitLab keeping it.
 - Download from a specific job (works as soon as that job succeeds; best
-  for pinning). Builds so far (artifacts expire about 2026-11-08):
+  for pinning). Builds so far (artifacts expire 4 weeks after the job):
 
   | Build | Branch | Job | Wheel | SHA-256 |
   |-------|--------|-----|-------|---------|
-  | **LALSuite 7.26.16 release (recommended)** | `pyodide-wheels-v7.26.16` | 5186199 (pipeline 898569, commit `c14584f26e`) | `lalsuite-7.26.16-cp313-cp313-pyodide_2025_0_wasm32.whl` | `884a2bc520ffc0652484e2d01aa58b7128d141242f856bfe53c86d81402508c5` |
+  | **LALSuite 8.0.0 release (pinned)** | `pyodide-wheels-v8.0.0` | 5248112 (pipeline 906353, commit `adbd7cddf3`) | `lalsuite-8.0.0-cp313-cp313-pyodide_2025_0_wasm32.whl` | `1823287492948f08900f6743df4b54823c00d599b2ede06d776b4e18d70f765d` |
+  | LALSuite 7.26.16 release | `pyodide-wheels-v7.26.16` | 5186199 (pipeline 898569, commit `c14584f26e`) | `lalsuite-7.26.16-cp313-cp313-pyodide_2025_0_wasm32.whl` | `884a2bc520ffc0652484e2d01aa58b7128d141242f856bfe53c86d81402508c5` |
   | master | `pyodide-wheels` | 5186182 (pipeline 898568, commit `86995a6b5c`) | `lalsuite-7.26.16.1-…` | |
   | master (first CI build) | `pyodide-wheels` | 5185942 (pipeline 898530, commit `4554d05a18`) | `lalsuite-7.26.16.1-…` | |
 
   ```bash
-  curl -L -o wheelhouse-pyodide.zip "https://git.ligo.org/api/v4/projects/colm.talbot%2Flalsuite/jobs/5186199/artifacts"
+  curl -L -o wheelhouse-pyodide.zip "https://git.ligo.org/api/v4/projects/colm.talbot%2Flalsuite/jobs/5248112/artifacts"
   ```
 
-  The release branch is the `lalsuite-v7.26.16` tag plus the
-  `pyodide-wheels` commits. The master builds had problems in use, so
-  prefer the release. The site pins the release build (job 5186199) in
-  `lalsuite-wheel.json`.
+  The release branches are the `lalsuite-v8.0.0` or `lalsuite-v7.26.16`
+  tag plus the `pyodide-wheels` commits (8.0.0 also needs a fix to its
+  CI rules, which otherwise create no pipeline for branch pushes). The
+  site pins the 8.0.0 build (job 5248112) in `lalsuite-wheel.json`.
+  Against 7.26.16, the same examples pass; the one API change bilby meets
+  is `CreateSimNeutronStarFamily(eos, min_fam)`.
 
 - Or the latest from the branch, which only finds jobs in pipelines where
   every job succeeded (so it fails while, or if, other jobs fail):
@@ -66,8 +69,8 @@ These notes were written from the LALSuite Pyodide work (branch
   Its `install_requires` (igwn-ligolw, lscsoft-glue, …) are not all
   installable in Pyodide; skip them.
 - LAL data files are inside the wheel at
-  `/lib/python3.13/site-packages/lalapps/data` (release 7.26.16;
-  `_lalsuite/data` in master builds) and are found
+  `/lib/python3.13/site-packages/_lalsuite/data` (`lalapps/data` in
+  7.26.16) and are found
   automatically. Large waveform data (e.g. NR surrogate HDF5 files from
   Zenodo, ~100 MB each) must be fetched separately and their directory
   added to `LAL_DATA_PATH`.
