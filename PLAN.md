@@ -90,7 +90,7 @@ Pyodide. Background on the LALSuite Pyodide build is in `NOTES.md`.
 | bilby | wheel built from the pinned commit, served by the site |
 | dynesty, emcee, corner, dill, nestle, nestle-bilby, bilby's dependencies, gwpy and its dependencies, gwosc, gwinc | pinned in `packages.lock.json`, served by the site |
 | igwn-segments 2.1.1 | pure-Python rebuild of the sdist, served by the site |
-| LALSuite 7.26.16 | GitLab CI artifact of colm.talbot/lalsuite, branch `pyodide-wheels-v7.26.16` (the `lalsuite-v7.26.16` tag plus the Pyodide build commits, `c14584f2`), served by the site |
+| LALSuite 8.0.0 | GitLab CI artifact of colm.talbot/lalsuite, branch `pyodide-wheels-v8.0.0` (the `lalsuite-v8.0.0` tag plus the Pyodide build commits and a CI fix, `adbd7cdd`), served by the site |
 
 ### Example status (test mode, Node, bilby `f2d03634`)
 
@@ -102,7 +102,7 @@ Pyodide. Background on the LALSuite Pyodide build is in `NOTES.md`.
 | Need network (fail in Node only) | `GW150914`, `GW190425` | run in the browser (test mode: 81 s and 111 s); test them in a browser in CI |
 | Fail only in test mode | `linear_regression_grid`, `linear_regression_with_Fisher`, `fake_sampler_example`, `non_tensor`, `relative_binning`, `plot_time_domain_data` | test mode skips plots these examples use; see below |
 | bilby `main` bug | `multivariate_gaussian_prior` (`PriorDict.rescale` after #886 cannot handle joint priors) | report upstream |
-| LALSuite API change | `bns_polytrope_eos`, `bns_spectral_pca_eos` (`CreateSimNeutronStarFamily` needs `min_fam`) | Colm is fixing |
+| LALSuite API change | `bns_polytrope_eos`, `bns_spectral_pca_eos`: LALSuite 8.0.0's `CreateSimNeutronStarFamily` needs `min_fam` (with 7.26.16 they failed too, with a GSL interpolation error after 13 and 25 min) | bilby needs to pass `min_fam` |
 
 ## Done since the last plan
 

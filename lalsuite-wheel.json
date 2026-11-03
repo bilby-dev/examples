@@ -1,10 +1,10 @@
 {
- "url": "https://git.ligo.org/colm.talbot/lalsuite/-/jobs/5186199/artifacts/raw/wheelhouse-pyodide/lalsuite-7.26.16-cp313-cp313-pyodide_2025_0_wasm32.whl",
- "sha256": "884a2bc520ffc0652484e2d01aa58b7128d141242f856bfe53c86d81402508c5",
- "version": "7.26.16",
+ "url": "https://git.ligo.org/colm.talbot/lalsuite/-/jobs/5248112/artifacts/raw/wheelhouse-pyodide/lalsuite-8.0.0-cp313-cp313-pyodide_2025_0_wasm32.whl",
+ "sha256": "1823287492948f08900f6743df4b54823c00d599b2ede06d776b4e18d70f765d",
+ "version": "8.0.0",
  "license": "GPL-2.0-or-later",
  "source_repo": "https://git.ligo.org/colm.talbot/lalsuite",
- "source_commit": "c14584f26e441a17b889d266a9f72a1345fc2ed1",
+ "source_commit": "adbd7cddf35e91527a768b65c4cd337dedcba1de",
  "build_scripts": "wheel/pyodide",
  "bundled": [
   {"name": "GSL", "version": "2.8", "license": "GPL-3.0-or-later", "license_file": "GPL-3.0.txt",
